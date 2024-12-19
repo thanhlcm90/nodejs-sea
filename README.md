@@ -6,10 +6,10 @@
 <p align="center">
   CLI for NodeJS single executable applications.
   <p align="center">
-    <a href="https://www.npmjs.com/package/nestjs-auditlog" target="_blank"><img alt="npm version" src="https://img.shields.io/npm/v/nestjs-auditlog" /></a>
-    <a href="https://www.npmjs.com/package/nestjs-auditlog" target="_blank"><img alt="NPM" src="https://img.shields.io/npm/l/nestjs-auditlog" /></a>
-    <a href="https://www.npmjs.com/package/nestjs-auditlog" target="_blank"><img alt="npm downloads" src="https://img.shields.io/npm/dm/nestjs-auditlog" /></a>
-     <a href="https://coveralls.io/github/thanhlcm90/nestjs-auditlog?branch=main" target="_blank"><img alt="coverage" src="https://coveralls.io/repos/github/thanhlcm90/nestjs-auditlog/badge.svg?branch=main" /></a>
+    <a href="https://www.npmjs.com/package/nodejs-sea" target="_blank"><img alt="npm version" src="https://img.shields.io/npm/v/nodejs-sea" /></a>
+    <a href="https://www.npmjs.com/package/nodejs-sea" target="_blank"><img alt="NPM" src="https://img.shields.io/npm/l/nodejs-sea" /></a>
+    <a href="https://www.npmjs.com/package/nodejs-sea" target="_blank"><img alt="npm downloads" src="https://img.shields.io/npm/dm/nodejs-sea" /></a>
+    <a href="https://coveralls.io/github/thanhlcm90/nodejs-sea?branch=main" target="_blank"><img alt="coverage" src="https://coveralls.io/repos/github/thanhlcm90/nodejs-sea/badge.svg?branch=main" /></a>
   </p>
 </p>
 
@@ -53,18 +53,7 @@ With yarn
 yarn add nodejs-sea
 ```
 
-## Example
-
-To build the single executable applications from source, please create the folder `sea`, and put the `config.json` file
-
-```json
-{
-  "main": "sea/dist/server-out.js",
-  "output": "sea/dist/viactapp.blob",
-  "copyFiles": [],
-  "esbuild": {}
-}
-```
+## CLI usage
 
 Run build script with `npx`
 
@@ -72,7 +61,52 @@ Run build script with `npx`
 npx nodejs-sea sea
 ```
 
-## CLI usage
+```sh
+Options:
+      --version         Show version number             [boolean]
+  -s, --sea-config      Path of the sea config file     [string] [default: "sea/config.json"]
+  -n, --node-version    Node.js version                 [string] [default: "*"]
+  -c, --clean           Remove generated files          [boolean] [default: true]
+      --help            Show help                       [boolean]
+```
+
+## Example
+
+To build the single executable applications from source, please create the folder `sea`, and put the `config.json` file
+
+```json
+{
+  "main": "sea/dist/server-out.js",
+  "output": "sea/dist/viactapp.blob"
+}
+```
+
+If you want copy some files from your source to your build output, put them into `copyFiles`
+
+```json
+{
+  "main": "sea/dist/server-out.js",
+  "output": "sea/dist/viactapp.blob",
+  "copyFiles": ["src/config.json", ".env"]
+}
+```
+
+If you want run <a href="https://esbuild.github.io/">esbuild</a> before, put esbuild config into `esbuild`
+
+```json
+{
+  "main": "sea/dist/server-out.js",
+  "output": "sea/dist/app.blob",
+  "esbuild": {
+    "entryPoints": ["main.js"],
+    "bundle": true,
+    "outfile": "sea/dist/server-out.js",
+    "platform": "node",
+    "external": ["@aws-sdk/client-s3", "hbs"],
+    "packages": "bundle"
+  }
+}
+```
 
 ## Contact and Feedback
 

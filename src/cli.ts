@@ -19,10 +19,10 @@ class PackCommand extends Command {
     description: `Path of the sea config file. Default is sea/config.json`,
   });
   nodeVersion = Option.String(`-n,--node-version`, {
-    description: `Node.js version or semver version range. Default is 22.11.0`,
+    description: `Node.js version. Default is 22.11.0`,
   });
   clean = Option.String(`-c,--clean`, {
-    description: `Node.js version or semver version range. Default is true`,
+    description: `Remove generated files. Default is true`,
   });
 
   /**
