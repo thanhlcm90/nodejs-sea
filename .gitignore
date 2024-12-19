@@ -1,0 +1,10 @@
+.idea/*
+.nyc_output
+lib
+test/sea/dist
+node_modules
+src/**.js
+coverage
+*.log
+yarn.lock
+package-lock.json

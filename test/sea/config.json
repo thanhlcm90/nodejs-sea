@@ -1,0 +1,20 @@
+{
+  "main": "test/sea/dist/server-out.js",
+  "output": "test/sea/dist/app.blob",
+  "esbuild": {
+    "entryPoints": ["test/main.js"],
+    "bundle": true,
+    "outfile": "test/sea/dist/server-out.js",
+    "platform": "node",
+    "external": [
+      "class-transformer/storage",
+      "@nestjs/microservices",
+      "pg-hstore",
+      "yamlparser",
+      "@aws-sdk/client-s3",
+      "hbs"
+    ],
+    "packages": "bundle"
+  },
+  "copyFiles": ["test/sea/config.json"]
+}
