@@ -89,8 +89,7 @@ class PackCommand extends Command {
     logger.stepStarting("Inject to NodeJS Single Execute Application");
     await this.execCommand("node", ["--experimental-sea-config", configFilePath]);
     await this.execCommand("cp", [nodeSourcePath, appPath]);
-    await this.execCommand("npx", [
-      "postject",
+    await this.execCommand("postject", [
       appPath,
       "NODE_SEA_BLOB",
       config.output,
