@@ -67,7 +67,9 @@ Options:
   -s, --sea-config      Path of the sea config file     [string] [default: "sea/config.json"]
   -n, --node-version    Node.js version                 [string] [default: "*"]
   -c, --clean           Remove generated files          [boolean] [default: true]
+  -p, --platform        Target platform (linux, darwin, win32) [string] [default: current platform]
       --help            Show help                       [boolean]
+  -e, --env-file        Path to .env file  [string] [default: .env]
 ```
 
 ## Example
