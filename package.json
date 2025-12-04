@@ -18,7 +18,7 @@
     "precommit": "lint-staged",
     "prepare": "husky",
     "prepack": "rm -rf lib && rollup -c",
-    "test": "node lib/cli.js -s test/sea/config.json",
+    "build:test": "node lib/cli.js -s test/sea/config.json -e test/.env",
     "standard-version": "standard-version",
     "build": "rollup -c"
   },
@@ -29,6 +29,7 @@
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^14.1.0",
     "@rollup/plugin-typescript": "^8.5.0",
+    "@types/adm-zip": "^0.5.7",
     "@types/cli-progress": "^3.11.6",
     "@types/node": "^18.7.15",
     "@types/tar": "^6.1.2",
@@ -55,9 +56,11 @@
   },
   "dependencies": {
     "@pkgjs/nv": "^0.2.2",
+    "adm-zip": "^0.5.16",
     "chalk": "^5.6.2",
     "cli-progress": "^3.12.0",
     "clipanion": "^3.2.0-rc.12",
+    "dotenv": "^17.2.3",
     "esbuild": "^0.24.0",
     "postject": "^1.0.0-alpha.6",
     "rimraf": "^6.0.1",

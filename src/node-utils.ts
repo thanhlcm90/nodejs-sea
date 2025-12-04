@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import crypto from "crypto";
 import fs, { createReadStream, createWriteStream } from "fs";
 import path from "path";
@@ -14,7 +15,13 @@ import { Logger } from "./logger";
 
 export class NodeUtils {
   // Download and unpack a tarball containing the code for a specific Node.js version.
-  async getNodeSourceForVersion(range: string, dir: string, logger: Logger, retries = 2): Promise<string> {
+  async getNodeSourceForVersion(
+    range: string,
+    dir: string,
+    logger: Logger,
+    platform: string = "linux",
+    retries = 2
+  ): Promise<string> {
     logger.stepStarting(`Looking for Node.js version matching ${JSON.stringify(range)}`);
 
     let inputIsFileUrl = false;
@@ -57,10 +64,13 @@ export class NodeUtils {
       releaseBaseUrl = `https://nodejs.org/download/release/${version}`;
     }
 
-    const cachedName = `node-${version}-linux-x64`;
-    const tarballName = `${cachedName}.tar.gz`;
+    const nodePlatform = platform === "win32" ? "win" : platform;
+    const arch = "x64";
+    const ext = platform === "win32" ? "zip" : "tar.gz";
+    const cachedName = `node-${version}-${nodePlatform}-${arch}`;
+    const tarballName = `${cachedName}.${ext}`;
     const cachedTarballPath = path.join(dir, tarballName);
-    const cachedNodePath = path.join(dir, cachedName, "bin", "node");
+    const cachedNodePath = path.join(dir, cachedName, platform === "win32" ? "node.exe" : path.join("bin", "node"));
 
     let hasCachedTarball = false;
     try {
@@ -134,24 +144,29 @@ export class NodeUtils {
       tarballWritePromise = pipeline(tarballStream, createWriteStream(cachedTarballPath));
     }
 
-    // Streaming unpack. This will create the directory `${dir}/node-${version}`
-    // with the Node.js source tarball contents in it.
+    // Streaming unpack or unzip.
     try {
-      await Promise.all([
-        pipeline(
-          tarballStream,
-          zlib.createGunzip(),
-          tar.x({
-            cwd: dir,
-          })
-        ),
-        tarballWritePromise,
-      ]);
+      if (ext === "zip") {
+        if (tarballWritePromise) await tarballWritePromise;
+        logger.stepStarting(`Unzipping to ${dir}`);
+        execSync(`unzip -q -o "${cachedTarballPath}" -d "${dir}"`);
+      } else {
+        await Promise.all([
+          pipeline(
+            tarballStream!,
+            zlib.createGunzip(),
+            tar.x({
+              cwd: dir,
+            })
+          ),
+          tarballWritePromise,
+        ]);
+      }
     } catch (err) {
       if (retries > 0) {
         logger.stepFailed(err);
         logger.stepStarting("Re-trying");
-        return await this.getNodeSourceForVersion(range, dir, logger, retries - 1);
+        return await this.getNodeSourceForVersion(range, dir, logger, platform, retries - 1);
       }
       throw err;
     }

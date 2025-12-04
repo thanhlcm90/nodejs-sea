@@ -5,11 +5,11 @@ import fs from "fs";
 import path from "path";
 
 import { Command, Option, runExit, UsageError } from "clipanion";
+import dotenv from "dotenv";
 import { rimraf } from "rimraf";
 
 import { LoggerImpl } from "./logger";
 import { NodeUtils } from "./node-utils";
-
 const currentWorkingDirectory = process.cwd();
 
 const esbuild = require("esbuild");
@@ -18,11 +18,17 @@ class PackCommand extends Command {
   input = Option.String(`-s,--sea-config`, {
     description: `Path of the sea config file. Default is sea/config.json`,
   });
+  envFile = Option.String(`-e,--env-file`, {
+    description: `Path to .env file. Default is .env`,
+  });
   nodeVersion = Option.String(`-n,--node-version`, {
     description: `Node.js version. Default is 22.11.0`,
   });
   clean = Option.String(`-c,--clean`, {
     description: `Remove generated files. Default is true`,
+  });
+  platform = Option.String(`-p,--platform`, {
+    description: `Target platform (linux, darwin, win32). Default is current platform`,
   });
 
   /**
@@ -50,6 +56,7 @@ class PackCommand extends Command {
     const nodeUtils = new NodeUtils();
     const tmpdir = path.join(currentWorkingDirectory, "node_modules/.cache/nodejs-sea");
     const configFilePath = this.input ?? "sea/config.json";
+
     const configContent = fs.readFileSync(configFilePath).toString();
     const nodeVersion = this.nodeVersion ?? "22.11.0";
     let config: any;
@@ -64,8 +71,10 @@ class PackCommand extends Command {
     const outputPath = config.output.split("/").slice(0, -1).join("/");
     const copyFiles = config.copyFiles ?? [];
     const esbuildConfig = config.esbuild;
-    const nodeSourcePath = await nodeUtils.getNodeSourceForVersion(nodeVersion, tmpdir, logger);
-    const appPath = path.join(outputPath, "app");
+    const platform = this.platform ?? process.platform;
+    const nodeSourcePath = await nodeUtils.getNodeSourceForVersion(nodeVersion, tmpdir, logger, platform);
+    const executableName = platform === "win32" ? "app.exe" : "app";
+    const appPath = path.join(outputPath, executableName);
 
     logger.stepStarting("Cleaning dist directory");
     await rimraf(outputPath, { glob: false });
@@ -81,7 +90,22 @@ class PackCommand extends Command {
     }
 
     if (esbuildConfig) {
-      logger.stepStarting("Run esbuild");
+      // Load env file
+      const envFile = this.envFile ?? ".env";
+      const envPath = path.resolve(currentWorkingDirectory, envFile);
+      if (fs.existsSync(envPath)) {
+        logger.stepStarting("Run esbuild - with env");
+        dotenv.config({ path: envPath });
+        esbuildConfig.define = {
+          ...esbuildConfig.define,
+          ...Object.fromEntries(
+            Object.entries(process.env).map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
+          ),
+        };
+      } else {
+        logger.stepStarting("Run esbuild - without env");
+      }
+
       await esbuild.build(esbuildConfig);
       logger.stepCompleted();
     }
@@ -89,13 +113,17 @@ class PackCommand extends Command {
     logger.stepStarting("Inject to NodeJS Single Execute Application");
     await this.execCommand("node", ["--experimental-sea-config", configFilePath]);
     await this.execCommand("cp", [nodeSourcePath, appPath]);
-    await this.execCommand("postject", [
+    const postjectCommand = [
       appPath,
       "NODE_SEA_BLOB",
       config.output,
       "--sentinel-fuse",
       "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2",
-    ]);
+    ];
+    if (platform === "darwin") {
+      postjectCommand.push("--macho-segment-name", "NODE_SEA");
+    }
+    await this.execCommand("postject", postjectCommand);
     logger.stepCompleted();
 
     // clear temp file

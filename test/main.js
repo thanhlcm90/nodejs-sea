@@ -1,1 +1,1 @@
-console.log("Hello word");
+console.log(process?.env?.HELLO_MESSAGE ?? "Hello World");
