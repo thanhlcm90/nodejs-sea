@@ -1,6 +1,6 @@
 {
   "name": "nodejs-sea",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A powerful package for NodeJS single executable applications (SEA), support good for NestJS framework",
   "main": "lib/index.js",
   "license": "MIT",
